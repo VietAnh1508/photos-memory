@@ -1,0 +1,7 @@
+{
+  "rewrites": [
+    { "source": "/api/auth-start", "destination": "https://pxfjkjbwmougsrwhumca.functions.supabase.co/auth-start" },
+    { "source": "/api/auth-callback", "destination": "https://pxfjkjbwmougsrwhumca.functions.supabase.co/auth-callback" },
+    { "source": "/api/photos-token", "destination": "https://pxfjkjbwmougsrwhumca.functions.supabase.co/photos-token" }
+  ]
+}

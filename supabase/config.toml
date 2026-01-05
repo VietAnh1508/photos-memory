@@ -1,0 +1,12 @@
+project_id = "your-project-ref"
+
+[functions]
+
+[functions.auth-start]
+verify_jwt = false
+
+[functions.auth-callback]
+verify_jwt = false
+
+[functions.photos-token]
+verify_jwt = false
