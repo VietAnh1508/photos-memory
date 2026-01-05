@@ -1,13 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { PhotoPickerDialog } from "./components/PhotoPickerDialog";
 import { usePhotosToken } from "./hooks/usePhotosToken";
+import {
+  clearMediaItems,
+  loadMediaItems,
+  saveMediaItems,
+} from "./services/localMediaStore";
 import type { MediaItem } from "./types/googlePhotos";
-import { loadMediaItems, saveMediaItems, clearMediaItems } from "./services/localMediaStore";
 import { formatCaptureDate, formatMemoryHeadline } from "./utils/dateFormat";
 
 const heroCopy = {
-  title: 'Photos Memory',
-  subtitle: 'Choose favorites from Google Photos, then we surprise you with one every time you visit.',
+  title: "Photos Memory",
+  subtitle:
+    "Choose favorites from Google Photos, then we surprise you with one every time you visit.",
 };
 
 function pickRandom(items: MediaItem[]): MediaItem | null {
@@ -19,32 +24,40 @@ function pickRandom(items: MediaItem[]): MediaItem | null {
 }
 
 function buildRenderUrl(baseUrl: string) {
-  const width = typeof window !== 'undefined' ? Math.ceil(window.innerWidth * 1.5) : 1920;
-  const height = typeof window !== 'undefined' ? Math.ceil(window.innerHeight * 1.5) : 1080;
+  const width =
+    typeof window !== "undefined" ? Math.ceil(window.innerWidth * 1.5) : 1920;
+  const height =
+    typeof window !== "undefined" ? Math.ceil(window.innerHeight * 1.5) : 1080;
   return `${baseUrl}=w${width}-h${height}-no`;
 }
 
 export default function App() {
   const cached = useMemo(() => loadMediaItems(), []);
   const [mediaItems, setMediaItems] = useState<MediaItem[]>(cached);
-  const [currentItem, setCurrentItem] = useState<MediaItem | null>(() => pickRandom(cached));
+  const [currentItem, setCurrentItem] = useState<MediaItem | null>(() =>
+    pickRandom(cached)
+  );
   const [isDialogOpen, setDialogOpen] = useState(false);
-  const { ensureAccessToken, startSignIn, isFetching, hasSession, lastError } = usePhotosToken();
+  const { ensureAccessToken, startSignIn, isFetching, hasSession, lastError } =
+    usePhotosToken();
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [photoLoading, setPhotoLoading] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
-  const memoryHeadline = useMemo(() => formatMemoryHeadline(currentItem?.createTime), [currentItem?.createTime]);
-  const captureDateLabel = useMemo(() => formatCaptureDate(currentItem?.createTime), [currentItem?.createTime]);
-
-  const handlePickerComplete = useCallback(
-    (items: MediaItem[]) => {
-      saveMediaItems(items);
-      setMediaItems(items);
-      setCurrentItem(pickRandom(items));
-      setDialogOpen(false);
-    },
-    [],
+  const memoryHeadline = useMemo(
+    () => formatMemoryHeadline(currentItem?.createTime),
+    [currentItem?.createTime]
   );
+  const captureDateLabel = useMemo(
+    () => formatCaptureDate(currentItem?.createTime),
+    [currentItem?.createTime]
+  );
+
+  const handlePickerComplete = useCallback((items: MediaItem[]) => {
+    saveMediaItems(items);
+    setMediaItems(items);
+    setCurrentItem(pickRandom(items));
+    setDialogOpen(false);
+  }, []);
 
   const handleShuffle = useCallback(() => {
     setCurrentItem(pickRandom(mediaItems));
@@ -100,7 +113,11 @@ export default function App() {
           return;
         }
         setPhotoUrl(null);
-        setPhotoError(loadError instanceof Error ? loadError.message : 'Unable to load photo.');
+        setPhotoError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Unable to load photo."
+        );
       } finally {
         if (!isCancelled) {
           setPhotoLoading(false);
@@ -125,16 +142,28 @@ export default function App() {
       {currentItem ? (
         <div className="photo-stage">
           {photoUrl ? (
-            <img src={photoUrl} alt={currentItem.description || currentItem.filename} />
+            <img
+              src={photoUrl}
+              alt={currentItem.description || currentItem.filename}
+            />
           ) : (
             <div className="photo-placeholder">
-              <p>{photoError ?? (photoLoading ? 'Preparing your photo…' : 'Authorize to view your photo.')}</p>
+              <p>
+                {photoError ??
+                  (photoLoading
+                    ? "Preparing your photo…"
+                    : "Authorize to view your photo.")}
+              </p>
             </div>
           )}
           {(memoryHeadline || captureDateLabel) && (
             <div className="memory-caption">
-              {memoryHeadline && <p className="memory-caption__headline">{memoryHeadline}</p>}
-              {captureDateLabel && <p className="memory-caption__date">{captureDateLabel}</p>}
+              {memoryHeadline && (
+                <p className="memory-caption__headline">{memoryHeadline}</p>
+              )}
+              {captureDateLabel && (
+                <p className="memory-caption__date">{captureDateLabel}</p>
+              )}
             </div>
           )}
         </div>
@@ -147,25 +176,45 @@ export default function App() {
       )}
 
       <div className="control-bar">
-        {!hasMedia && <p className="notice">Pick at least one photo to get started.</p>}
-        {(lastError || photoError) && <p className="error">{photoError ?? lastError}</p>}
+        {hasSession && !hasMedia && (
+          <p className="notice">Pick at least one photo to get started.</p>
+        )}
+        {(lastError || photoError) && (
+          <p className="error">{photoError ?? lastError}</p>
+        )}
         <div className="actions">
-          {hasSession === false ? (
-            <button type="button" onClick={startSignIn} disabled={photoLoading || isFetching}>
-              Sign in with Google
-            </button>
-          ) : (
+          {hasSession ? (
             <>
-              <button type="button" onClick={() => setDialogOpen(true)} disabled={photoLoading || isFetching}>
-                {hasMedia ? 'Update selection' : 'Select photos'}
+              <button
+                type="button"
+                onClick={() => setDialogOpen(true)}
+                disabled={photoLoading || isFetching}
+              >
+                {hasMedia ? "Update selection" : "Select photos"}
               </button>
-              <button type="button" onClick={handleShuffle} disabled={!hasMedia || photoLoading || isFetching}>
+              <button
+                type="button"
+                onClick={handleShuffle}
+                disabled={!hasMedia || photoLoading || isFetching}
+              >
                 Shuffle
               </button>
-              <button type="button" onClick={handleReset} disabled={!hasMedia || photoLoading || isFetching}>
+              <button
+                type="button"
+                onClick={handleReset}
+                disabled={!hasMedia || photoLoading || isFetching}
+              >
                 Clear
               </button>
             </>
+          ) : (
+            <button
+              type="button"
+              onClick={startSignIn}
+              disabled={photoLoading || isFetching}
+            >
+              Sign in with Google
+            </button>
           )}
         </div>
       </div>
