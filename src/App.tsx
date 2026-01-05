@@ -157,7 +157,7 @@ export default function App() {
         URL.revokeObjectURL(objectUrl);
       }
     };
-  }, [currentItem, ensureAccessToken, isFetching]);
+  }, [currentItem, ensureAccessToken]);
 
   const hasMedia = mediaItems.length > 0;
 
