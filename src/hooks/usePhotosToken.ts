@@ -1,9 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-
-const DEFAULT_FUNCTION_URL =
-  import.meta.env.VITE_SUPABASE_FUNCTION_URL?.replace(/\/$/, "") ?? "";
-const PHOTOS_TOKEN_ENDPOINT = `${DEFAULT_FUNCTION_URL}/photos-token`;
-const AUTH_START_ENDPOINT = `${DEFAULT_FUNCTION_URL}/auth-start`;
+import { AUTH_START_URL, PHOTOS_TOKEN_URL } from "../services/supabaseConfig";
 
 function currentUrl() {
   return typeof window !== "undefined" ? window.location.href : "";
@@ -18,7 +14,7 @@ export function usePhotosToken() {
     setIsFetching(true);
     setLastError(null);
     try {
-      const response = await fetch(PHOTOS_TOKEN_ENDPOINT, {
+      const response = await fetch(PHOTOS_TOKEN_URL, {
         method: "GET",
         credentials: "include",
       });
@@ -51,7 +47,7 @@ export function usePhotosToken() {
 
   const startSignIn = useCallback(() => {
     const redirect = encodeURIComponent(currentUrl());
-    const target = `${AUTH_START_ENDPOINT}?redirect_to=${redirect}`;
+    const target = `${AUTH_START_URL}?redirect_to=${redirect}`;
     window.location.href = target;
   }, []);
 
