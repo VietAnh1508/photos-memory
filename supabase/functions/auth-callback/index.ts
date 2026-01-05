@@ -1,6 +1,6 @@
 import { badRequest, jsonResponse } from '../_shared/http.ts';
 import { verifySignedSessionCookie, createSignedSessionCookie } from '../_shared/session.ts';
-import { upsertTokenRecord } from '../_shared/store.ts';
+import { upsertTokenRecord, getTokenRecord } from '../_shared/store.ts';
 
 const COOKIE_NAME = 'pm_oauth_session';
 const SESSION_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
@@ -120,10 +120,16 @@ Deno.serve(async (req) => {
   try {
     const tokenResponse = await exchangeCode({ code, codeVerifier: String(session.codeVerifier), clientId, clientSecret, redirectUri });
     const userInfo = await fetchUserInfo(tokenResponse.access_token);
+    const existing = await getTokenRecord(userInfo.sub);
+    const refreshToken = tokenResponse.refresh_token ?? existing?.refresh_token;
+
+    if (!refreshToken) {
+      return jsonResponse({ error: 'Missing refresh token; please re-consent.' }, { status: 401 });
+    }
 
     await upsertTokenRecord({
       google_user_id: userInfo.sub,
-      refresh_token: tokenResponse.refresh_token,
+      refresh_token: refreshToken,
       access_token: tokenResponse.access_token,
       token_expires_at: new Date(Date.now() + tokenResponse.expires_in * 1000).toISOString(),
       profile_email: userInfo.email,

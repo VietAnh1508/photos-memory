@@ -33,7 +33,7 @@ async function supabaseFetch(path: string, init: RequestInit): Promise<Response>
 }
 
 export async function upsertTokenRecord(record: TokenRecord): Promise<void> {
-  const response = await supabaseFetch('', {
+  const response = await supabaseFetch('?on_conflict=google_user_id', {
     method: 'POST',
     headers: {
       Prefer: 'resolution=merge-duplicates',

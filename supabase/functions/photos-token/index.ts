@@ -107,6 +107,13 @@ Deno.serve(async (req) => {
   }
 
   try {
+    if (!record.refresh_token) {
+      return jsonResponse(
+        { error: "No refresh token stored. Please re-authenticate." },
+        { status: 401, headers }
+      );
+    }
+
     const refreshed = await refreshAccessToken({
       refreshToken: record.refresh_token,
       clientId,
