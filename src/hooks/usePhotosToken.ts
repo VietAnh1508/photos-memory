@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AUTH_START_URL, PHOTOS_TOKEN_URL } from "../services/supabaseConfig";
 
 function currentUrl() {
@@ -9,6 +9,39 @@ export function usePhotosToken() {
   const [lastError, setLastError] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState(false);
   const [hasSession, setHasSession] = useState<boolean | null>(null);
+
+  // Probe for an existing session cookie on mount so the UI can show the right CTA.
+  useEffect(() => {
+    let cancelled = false;
+    const probe = async () => {
+      try {
+        const response = await fetch(PHOTOS_TOKEN_URL, {
+          method: "GET",
+          credentials: "include",
+        });
+
+        if (response.status === 401) {
+          if (!cancelled) setHasSession(false);
+          return;
+        }
+
+        if (!response.ok) {
+          if (!cancelled) setHasSession(false);
+          return;
+        }
+
+        // Session valid. We don't return the token here; we'll fetch a fresh one when needed.
+        if (!cancelled) setHasSession(true);
+      } catch {
+        if (!cancelled) setHasSession(false);
+      }
+    };
+
+    void probe();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const ensureAccessToken = useCallback(async () => {
     setIsFetching(true);

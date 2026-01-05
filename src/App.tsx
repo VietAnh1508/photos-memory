@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { PhotoPickerDialog } from './components/PhotoPickerDialog';
-import { usePhotosToken } from './hooks/usePhotosToken';
-import type { MediaItem } from './types/googlePhotos';
-import { loadMediaItems, saveMediaItems, clearMediaItems } from './services/localMediaStore';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { PhotoPickerDialog } from "./components/PhotoPickerDialog";
+import { usePhotosToken } from "./hooks/usePhotosToken";
+import type { MediaItem } from "./types/googlePhotos";
+import { loadMediaItems, saveMediaItems, clearMediaItems } from "./services/localMediaStore";
+import { formatCaptureDate, formatMemoryHeadline } from "./utils/dateFormat";
 
 const heroCopy = {
   title: 'Photos Memory',
@@ -21,48 +22,6 @@ function buildRenderUrl(baseUrl: string) {
   const width = typeof window !== 'undefined' ? Math.ceil(window.innerWidth * 1.5) : 1920;
   const height = typeof window !== 'undefined' ? Math.ceil(window.innerHeight * 1.5) : 1080;
   return `${baseUrl}=w${width}-h${height}-no`;
-}
-
-const captureDateFormatter = new Intl.DateTimeFormat(undefined, {
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric',
-});
-
-function parseCreateTime(createTime?: string) {
-  if (!createTime) {
-    return null;
-  }
-  const date = new Date(createTime);
-  if (Number.isNaN(date.getTime())) {
-    return null;
-  }
-  return date;
-}
-
-function formatCaptureDate(createTime?: string) {
-  const date = parseCreateTime(createTime);
-  if (!date) {
-    return null;
-  }
-  return captureDateFormatter.format(date);
-}
-
-function formatMemoryHeadline(createTime?: string) {
-  const date = parseCreateTime(createTime);
-  if (!date) {
-    return null;
-  }
-  const now = new Date();
-  const sameMonthDay = date.getMonth() === now.getMonth() && date.getDate() === now.getDate();
-  const yearDiff = now.getFullYear() - date.getFullYear();
-
-  if (sameMonthDay && yearDiff > 0) {
-    const years = yearDiff === 1 ? 'one year' : `${yearDiff} years`;
-    return `On this day, ${years} ago`;
-  }
-
-  return null;
 }
 
 export default function App() {
