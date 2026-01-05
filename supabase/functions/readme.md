@@ -37,12 +37,24 @@ This folder contains Supabase edge functions that implement an OAuth 2.0 authori
    supabase functions deploy auth-callback --no-verify-jwt
    supabase functions deploy photos-token --no-verify-jwt
    ```
+6. Set production secrets (examples):
+   ```bash
+   supabase secrets set \
+     GOOGLE_CLIENT_ID=... \
+     GOOGLE_CLIENT_SECRET=... \
+     GOOGLE_REDIRECT_URI=https://<frontend-domain>/api/auth-callback \
+     GOOGLE_PHOTOS_SCOPE="openid email profile https://www.googleapis.com/auth/photospicker.mediaitems.readonly" \
+     SUPABASE_URL=https://<project-ref>.supabase.co \
+     SUPABASE_SERVICE_ROLE_KEY=... \
+     SUPABASE_FRONTEND_URL=https://<frontend-domain> \
+     SESSION_SECRET=$(openssl rand -hex 32)
+   ```
 
 ## Frontend Integration
 
-- Update your React app to redirect unauthenticated users to `/auth-start?redirect_to=<current-url>` (pointing at the deployed Supabase endpoint).
-- After `auth-callback` completes, the browser receives an `pm_oauth_session` HttpOnly cookie representing the Supabase session.
-- Before calling Google APIs, call `photos-token` (with `credentials: 'include'`) to obtain a short-lived access token. Use that token in the Authorization header when interacting with the Photos Picker REST endpoints, just like today.
+- Keep functions first-party by proxying `/api/*` on your frontend domain to the Supabase function host (e.g., via Vercel middleware/rewrites). Set `VITE_SUPABASE_FUNCTION_URL=https://<frontend-domain>/api`.
+- If you call `*.functions.supabase.co` directly from the SPA, browsers may block the session cookie (third-party), breaking the state check in `auth-callback`.
+- SPA flow: `/api/auth-start?redirect_to=<current-url>` → Google → `/api/auth-callback` sets `pm_oauth_session` → `/api/photos-token` returns a short-lived access token for Google Photos Picker REST calls.
 
 ## Storage
 
