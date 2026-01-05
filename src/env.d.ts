@@ -5,5 +5,6 @@ declare namespace NodeJS {
     readonly VITE_GOOGLE_CLIENT_ID: string;
     readonly VITE_GOOGLE_API_KEY: string;
     readonly VITE_PHOTOS_MAX_ITEM_COUNT?: string;
+    readonly VITE_SUPABASE_FUNCTION_URL: string;
   }
 }
